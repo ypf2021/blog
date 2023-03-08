@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实现简单的hash路由</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        #content {
+            height: calc(100vh - 50px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+        }
+
+        #nav {
+            height: 50px;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+        }
+
+        #nav a {
+            width: 25%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid black;
+        }
+
+        #nav a:not(:last-of-type) {
+            border-right: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main id="content"></main>
+    <nav id="nav">
+        <a href="#/">首页</a>
+        <a href="#/shop">商城</a>
+        <a href="#/shopping-cart">购物车</a>
+        <a href="#/mine">我的</a>
+    </nav>
+
+    <script>
+        class HashRouter {
+            constructor(routes = []) {
+                this.routes = routes
+                this.curHash = ''
+                this.refresh = this.refresh.bind(this)
+                window.addEventListener('load', this.refresh, false)
+                window.addEventListener('hashchange', this.refresh, false)
+            }
+            getUrlHash(url) {
+                // 获取hash的值
+                return url.indexOf('#') >= 0 ? url.slice(url.indexOf('#') + 1) : '/'  //有hash的话就把 # 后面的内容截取出来
+            }
+
+            refresh(event) {
+                // URL 变化时，获取到当前的hash
+                let newHash = '', oldHash = null
+                if (event.newURL) {
+                    // 触发 hashchange 时 内部会有 newURL 和 oldURL 表示两次的内容
+                    oldHash = this.getUrlHash(event.oldURL || '')
+                    newHash = this.getUrlHash(event.newURL || '')
+                } else { // 通过load触发时没有 newURL
+                    newHash = this.getUrlHash(window.location.hash)
+                }
+                this.curHash = newHash
+                this.matchComponent()
+            }
+
+            matchComponent() {
+                let curRoute = this.routes.find(route => route.path === this.curHash)
+                if (!curRoute) {
+                    curRoute = this.routes.find(route => route.path === '/')
+                }
+                const { component } = curRoute
+                document.querySelector('#content').innerHTML = component
+            }
+        }
+
+        const router = new HashRouter([
+            {
+                path: "/",
+                name: "home",
+                component: "<div>首页内容</div>"
+            },
+            {
+                path: "/shop",
+                name: "shop",
+                component: "<div>商城内容</div>"
+            },
+            {
+                path: "/shopping-cart",
+                name: "shopping-cart",
+                component: "<div>购物车内容</div>"
+            },
+            {
+                path: "/mine",
+                name: "mine",
+                component: "<div>我的内容</div>"
+            }
+        ]);
+    </script>
+</body>
+
+</html>
